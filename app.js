@@ -85,11 +85,16 @@ async function getLogoAtSize(pixelW, pixelH) {
 async function render() {
   const canvas = document.getElementById('preview');
   const dim = DIMENSIONS[state.selectedDimension];
-  await renderToCanvas(canvas, dim, state.selectedDimension);
+  // Preview uses devicePixelRatio for crisp display on Retina screens
+  const dpr = window.devicePixelRatio || 1;
+  await renderToCanvas(canvas, dim, state.selectedDimension, { scale: dpr });
+  // Set CSS size so canvas isn't stretched beyond its pixel resolution
+  canvas.style.width = dim.width + 'px';
+  canvas.style.height = dim.height + 'px';
 }
 
 async function renderToCanvas(canvas, dim, dimIndex, opts = {}) {
-  const s = RENDER_SCALE;
+  const s = opts.scale || RENDER_SCALE;
   const ctx = canvas.getContext('2d');
   canvas.width = dim.width * s;
   canvas.height = dim.height * s;
@@ -121,13 +126,12 @@ async function renderToCanvas(canvas, dim, dimIndex, opts = {}) {
 
   // 3. Logo (skip if noLogo option)
   if (!opts.noLogo) {
-    await drawLogo(ctx, dim);
+    await drawLogo(ctx, dim, s);
   }
 }
 
-async function drawLogo(ctx, dim) {
+async function drawLogo(ctx, dim, s) {
   const L = LOGO;
-  const s = RENDER_SCALE;
   // Scale the logo to fit the target logoWidth
   const logoDrawW = dim.logoWidth;
   const logoDrawH = dim.logoWidth * (LOGO_NATIVE_H / LOGO_NATIVE_W);
@@ -230,7 +234,7 @@ function hexToRgb(hex) {
 async function exportDimension(dimIndex, opts = {}) {
   const dim = DIMENSIONS[dimIndex];
   const canvas = document.createElement('canvas');
-  await renderToCanvas(canvas, dim, dimIndex, opts);
+  await renderToCanvas(canvas, dim, dimIndex, { ...opts, scale: RENDER_SCALE });
 
   canvas.toBlob((blob) => {
     const url = URL.createObjectURL(blob);
