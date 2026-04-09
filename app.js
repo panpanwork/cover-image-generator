@@ -8,19 +8,12 @@ const DIMENSIONS = [
   { name: '600 × 403', width: 600, height: 403, logoWidth: 377, cta: true },
 ];
 
-// Logo layout measurements at base scale (from Figma, logoWidth = ~400)
-const BASE_LOGO_WIDTH = 399.633;
+// Logo layout: single combined SVG (672×184 native)
+const LOGO_NATIVE_W = 672;
+const LOGO_NATIVE_H = 184;
 const LOGO = {
-  zenX: 86.84,
-  zenY: 0,
-  zenW: 80.212,
-  zenH: 109.072,
-  textX: 0,
-  textY: 82.69,
-  textW: 399.633,
-  textH: 26.398,
-  gap: 12.732,
-  seasonFontSize: 16.66,
+  gap: 12.732,              // gap between logo bottom and season text (at base scale)
+  seasonFontSize: 16.66,    // season font size at base logoWidth ~400
   seasonTracking: 1.19,
 };
 
@@ -40,8 +33,7 @@ const state = {
 // Per-format background placement: scale (%), offsetX (%), offsetY (%)
 const bgPlacement = DIMENSIONS.map(() => ({ scale: 100, offsetX: 0, offsetY: 0 }));
 
-let zenImg = null;
-let chanTextImg = null;
+let logoImg = null;
 
 // Unsplash state
 let unsplashKey = localStorage.getItem('unsplash_key') || '';
@@ -50,11 +42,8 @@ let unsplashQuery = '';
 
 // === Init ===
 async function init() {
-  // Load logo SVGs at high resolution for crisp rendering at all sizes
-  [zenImg, chanTextImg] = await Promise.all([
-    loadSvgHiRes('assets/zen-character.svg', 1600, 2180),
-    loadSvgHiRes('assets/chan-magazine-text.svg', 4000, 264),
-  ]);
+  // Load combined logo SVG at high resolution for crisp rendering
+  logoImg = await loadSvgHiRes('assets/logo.svg', 672 * 4, 184 * 4);
 
   // Explicitly load Baloo 2 (not used in DOM, so browser won't preload it)
   await document.fonts.load('500 16px "Baloo 2"');
@@ -133,42 +122,26 @@ function renderToCanvas(canvas, dim, dimIndex, opts = {}) {
 }
 
 function drawLogo(ctx, dim) {
-  const scale = dim.logoWidth / BASE_LOGO_WIDTH;
   const L = LOGO;
+  // Scale the logo to fit the target logoWidth
+  const logoDrawW = dim.logoWidth;
+  const logoDrawH = dim.logoWidth * (LOGO_NATIVE_H / LOGO_NATIVE_W);
 
-  // The logo block height (zen + chan text overlapping in grid)
-  const logoBlockH = Math.max(L.zenH * scale, (L.textY + L.textH) * scale);
-  const gap = L.gap * scale;
-  const seasonFontSize = L.seasonFontSize * scale;
+  const baseScale = dim.logoWidth / 399.633; // base scale for season text sizing
+  const gap = L.gap * baseScale;
+  const seasonFontSize = L.seasonFontSize * baseScale;
   const seasonLineH = seasonFontSize * 1.2;
   // CTA button adds extra height for email cover (24px fixed gap)
   const ctaGap = dim.cta ? 24 : 0;
   const ctaH = dim.cta ? 41 : 0;
-  const totalH = logoBlockH + gap + seasonLineH + ctaGap + ctaH;
+  const totalH = logoDrawH + gap + seasonLineH + ctaGap + ctaH;
 
-  const startX = (dim.width - dim.logoWidth) / 2;
+  const startX = (dim.width - logoDrawW) / 2;
   const startY = (dim.height - totalH) / 2;
 
-  // Draw zen character
-  if (zenImg) {
-    ctx.drawImage(
-      zenImg,
-      startX + L.zenX * scale,
-      startY + L.zenY * scale,
-      L.zenW * scale,
-      L.zenH * scale
-    );
-  }
-
-  // Draw CHAN MAGAZINE text
-  if (chanTextImg) {
-    ctx.drawImage(
-      chanTextImg,
-      startX + L.textX * scale,
-      startY + L.textY * scale,
-      L.textW * scale,
-      L.textH * scale
-    );
+  // Draw combined logo SVG
+  if (logoImg) {
+    ctx.drawImage(logoImg, startX, startY, logoDrawW, logoDrawH);
   }
 
   // Draw season text (right-aligned to logo right edge)
@@ -178,9 +151,9 @@ function drawLogo(ctx, dim) {
     ctx.fillStyle = 'white';
     ctx.textAlign = 'right';
     ctx.textBaseline = 'top';
-    ctx.letterSpacing = `${L.seasonTracking * scale}px`;
-    const seasonY = startY + logoBlockH + gap;
-    const logoRightEdge = startX + dim.logoWidth;
+    ctx.letterSpacing = `${L.seasonTracking * baseScale}px`;
+    const seasonY = startY + logoDrawH + gap;
+    const logoRightEdge = startX + logoDrawW;
     ctx.fillText(state.seasonText, logoRightEdge, seasonY);
     ctx.restore();
   }
@@ -190,7 +163,7 @@ function drawLogo(ctx, dim) {
     const btnW = 135;
     const btnH = 41;
     const btnX = (dim.width - btnW) / 2;
-    const logoSeasonBottom = startY + logoBlockH + gap + seasonLineH;
+    const logoSeasonBottom = startY + logoDrawH + gap + seasonLineH;
     const btnY = logoSeasonBottom + 24;
 
     // Button background
