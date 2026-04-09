@@ -33,7 +33,8 @@ const state = {
 // Per-format background placement: scale (%), offsetX (%), offsetY (%)
 const bgPlacement = DIMENSIONS.map(() => ({ scale: 100, offsetX: 0, offsetY: 0 }));
 
-let logoImg = null;
+let logoSvgText = null;
+const logoCache = new Map(); // cache rasterized logos by size key
 
 // Unsplash state
 let unsplashKey = localStorage.getItem('unsplash_key') || '';
@@ -42,8 +43,9 @@ let unsplashQuery = '';
 
 // === Init ===
 async function init() {
-  // Load combined logo SVG at high resolution for crisp rendering
-  logoImg = await loadSvgHiRes('assets/logo.svg', 672 * 4, 184 * 4);
+  // Load raw SVG text for on-demand rasterization at exact target size
+  const res = await fetch('assets/logo.svg');
+  logoSvgText = await res.text();
 
   // Explicitly load Baloo 2 (not used in DOM, so browser won't preload it)
   await document.fonts.load('500 16px "Baloo 2"');
@@ -63,28 +65,30 @@ function loadImage(src) {
   });
 }
 
-async function loadSvgHiRes(src, width, height) {
-  const res = await fetch(src);
-  let svgText = await res.text();
-  // Fix preserveAspectRatio and set explicit pixel dimensions for crisp rasterization
-  svgText = svgText.replace('preserveAspectRatio="none"', 'preserveAspectRatio="xMidYMid meet"');
-  svgText = svgText.replace(/width="[^"]*"/, `width="${width}"`);
-  svgText = svgText.replace(/height="[^"]*"/, `height="${height}"`);
+// Rasterize logo SVG at exact pixel dimensions (cached)
+async function getLogoAtSize(pixelW, pixelH) {
+  const key = `${pixelW}x${pixelH}`;
+  if (logoCache.has(key)) return logoCache.get(key);
+
+  let svgText = logoSvgText;
+  svgText = svgText.replace(/width="[^"]*"/, `width="${pixelW}"`);
+  svgText = svgText.replace(/height="[^"]*"/, `height="${pixelH}"`);
   const blob = new Blob([svgText], { type: 'image/svg+xml' });
   const url = URL.createObjectURL(blob);
   const img = await loadImage(url);
   URL.revokeObjectURL(url);
+  logoCache.set(key, img);
   return img;
 }
 
 // === Rendering ===
-function render() {
+async function render() {
   const canvas = document.getElementById('preview');
   const dim = DIMENSIONS[state.selectedDimension];
-  renderToCanvas(canvas, dim, state.selectedDimension);
+  await renderToCanvas(canvas, dim, state.selectedDimension);
 }
 
-function renderToCanvas(canvas, dim, dimIndex, opts = {}) {
+async function renderToCanvas(canvas, dim, dimIndex, opts = {}) {
   const s = RENDER_SCALE;
   const ctx = canvas.getContext('2d');
   canvas.width = dim.width * s;
@@ -117,12 +121,13 @@ function renderToCanvas(canvas, dim, dimIndex, opts = {}) {
 
   // 3. Logo (skip if noLogo option)
   if (!opts.noLogo) {
-    drawLogo(ctx, dim);
+    await drawLogo(ctx, dim);
   }
 }
 
-function drawLogo(ctx, dim) {
+async function drawLogo(ctx, dim) {
   const L = LOGO;
+  const s = RENDER_SCALE;
   // Scale the logo to fit the target logoWidth
   const logoDrawW = dim.logoWidth;
   const logoDrawH = dim.logoWidth * (LOGO_NATIVE_H / LOGO_NATIVE_W);
@@ -139,8 +144,11 @@ function drawLogo(ctx, dim) {
   const startX = (dim.width - logoDrawW) / 2;
   const startY = (dim.height - totalH) / 2;
 
-  // Draw combined logo SVG
-  if (logoImg) {
+  // Rasterize logo SVG at exact pixel size needed (no bitmap scaling)
+  if (logoSvgText) {
+    const pixelW = Math.round(logoDrawW * s);
+    const pixelH = Math.round(logoDrawH * s);
+    const logoImg = await getLogoAtSize(pixelW, pixelH);
     ctx.drawImage(logoImg, startX, startY, logoDrawW, logoDrawH);
   }
 
@@ -219,10 +227,10 @@ function hexToRgb(hex) {
 }
 
 // === Export ===
-function exportDimension(dimIndex, opts = {}) {
+async function exportDimension(dimIndex, opts = {}) {
   const dim = DIMENSIONS[dimIndex];
   const canvas = document.createElement('canvas');
-  renderToCanvas(canvas, dim, dimIndex, opts);
+  await renderToCanvas(canvas, dim, dimIndex, opts);
 
   canvas.toBlob((blob) => {
     const url = URL.createObjectURL(blob);
