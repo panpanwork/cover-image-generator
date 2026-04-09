@@ -56,7 +56,8 @@ async function init() {
     loadSvgHiRes('assets/chan-magazine-text.svg', 4000, 264),
   ]);
 
-  // Wait for fonts to load
+  // Explicitly load Baloo 2 (not used in DOM, so browser won't preload it)
+  await document.fonts.load('500 16px "Baloo 2"');
   await document.fonts.ready;
 
   bindEvents();
