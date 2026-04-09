@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chan Magazine &mdash; Cover Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Allerta&family=Baloo+2:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=4">
+</head>
+<body>
+  <!-- Password Gate -->
+  <div id="authGate" class="auth-gate">
+    <div class="auth-card">
+      <span class="auth-label">Chan Magazine</span>
+      <h1 class="auth-title">Cover Generator</h1>
+      <p class="auth-subtitle">Enter the password to continue</p>
+      <form id="authForm" class="auth-form">
+        <input type="password" id="authPassword" class="auth-input" placeholder="Password" autocomplete="off" autofocus>
+        <button type="submit" class="btn btn-primary auth-btn">Enter</button>
+      </form>
+      <p id="authError" class="auth-error"></p>
+    </div>
+  </div>
+
+  <div class="app" style="display:none;">
+    <header>
+      <div class="header-left">
+        <span class="header-label">Chan Magazine</span>
+        <h1>Cover Generator</h1>
+      </div>
+    </header>
+
+    <div class="layout">
+      <div class="preview-section">
+        <div class="preview-frame">
+          <canvas id="preview"></canvas>
+        </div>
+        <div class="dimension-bar">
+          <span class="dimension-label">Format</span>
+          <div class="dimension-tabs">
+            <button class="dim-tab active" data-dim="0">
+              <span class="dim-size">1160 &times; 400</span>
+              <span class="dim-meta">Banner</span>
+            </button>
+            <button class="dim-tab" data-dim="1">
+              <span class="dim-size">850 &times; 1020</span>
+              <span class="dim-meta">Portrait</span>
+            </button>
+            <button class="dim-tab" data-dim="2">
+              <span class="dim-size">1200 &times; 630</span>
+              <span class="dim-meta">Thumbnail</span>
+            </button>
+            <button class="dim-tab" data-dim="3">
+              <span class="dim-size">600 &times; 403</span>
+              <span class="dim-meta">Email Cover</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Per-format background placement controls -->
+        <div class="placement-bar">
+          <span class="placement-label">Background Placement</span>
+          <div class="placement-controls">
+            <div class="placement-slider">
+              <span class="placement-slider-label">Scale</span>
+              <input type="range" id="bgScale" min="50" max="300" value="100" step="1">
+              <span class="slider-value" id="bgScaleValue">100%</span>
+            </div>
+            <div class="placement-slider">
+              <span class="placement-slider-label">X</span>
+              <input type="range" id="bgOffsetX" min="-100" max="100" value="0" step="1">
+              <span class="slider-value" id="bgOffsetXValue">0</span>
+            </div>
+            <div class="placement-slider">
+              <span class="placement-slider-label">Y</span>
+              <input type="range" id="bgOffsetY" min="-100" max="100" value="0" step="1">
+              <span class="slider-value" id="bgOffsetYValue">0</span>
+            </div>
+            <button id="resetPlacement" class="btn btn-reset" title="Reset placement">Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <aside class="controls-section">
+        <div class="control-group">
+          <label class="control-label" for="seasonText">Edition</label>
+          <input type="text" id="seasonText" value="Winter 2026" placeholder="e.g. Spring 2026" spellcheck="false">
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="control-group">
+          <label class="control-label">Background</label>
+          <div class="btn-row">
+            <button id="uploadBtn" class="btn">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1v10M4 5l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 11v2a1 1 0 01-1 1H3a1 1 0 01-1-1v-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Upload
+            </button>
+            <button id="unsplashBtn" class="btn btn-outline">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M5 1h6v4.5H5V1zM1 7.5h4.5V15H1V7.5zM10.5 7.5H15V15h-4.5V7.5zM5 9.5h6V15H5V9.5z" stroke="currentColor" stroke-width="1.2"/></svg>
+              Unsplash
+            </button>
+          </div>
+          <input type="file" id="fileInput" accept="image/*" hidden>
+          <div id="imageInfo" class="image-info"></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="control-group">
+          <label class="control-label">Overlay</label>
+          <div class="inline-control">
+            <span class="inline-label">Color</span>
+            <div class="color-swatch-wrap">
+              <input type="color" id="overlayColor" value="#000000">
+            </div>
+          </div>
+          <div class="slider-row">
+            <span class="inline-label">Opacity</span>
+            <input type="range" id="overlayOpacity" min="0" max="100" value="40" step="1">
+            <span class="slider-value" id="opacityValue">40%</span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="control-group">
+          <label class="control-label">Adjustments</label>
+          <div class="slider-row">
+            <span class="inline-label">Brightness</span>
+            <input type="range" id="brightness" min="0" max="200" value="100" step="1">
+            <span class="slider-value" id="brightnessValue">100</span>
+          </div>
+          <div class="slider-row">
+            <span class="inline-label">Contrast</span>
+            <input type="range" id="contrast" min="0" max="200" value="100" step="1">
+            <span class="slider-value" id="contrastValue">100</span>
+          </div>
+          <div class="slider-row">
+            <span class="inline-label">Saturation</span>
+            <input type="range" id="saturate" min="0" max="200" value="100" step="1">
+            <span class="slider-value" id="saturateValue">100</span>
+          </div>
+          <div class="slider-row">
+            <span class="inline-label">Hue</span>
+            <input type="range" id="hueRotate" min="-180" max="180" value="0" step="1">
+            <span class="slider-value" id="hueRotateValue">0&deg;</span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="control-group export-group">
+          <label class="control-label">Export</label>
+          <div class="export-buttons">
+            <button class="btn export-btn" data-dim="0">
+              <span>Banner</span>
+              <span class="export-dim">1160 &times; 400</span>
+            </button>
+            <button class="btn export-btn export-btn-sub" id="exportBannerBgBtn">
+              <span>Banner (no logo)</span>
+              <span class="export-dim">1160 &times; 400</span>
+            </button>
+            <button class="btn export-btn" data-dim="1">
+              <span>Portrait</span>
+              <span class="export-dim">850 &times; 1020</span>
+            </button>
+            <button class="btn export-btn" data-dim="2">
+              <span>Thumbnail</span>
+              <span class="export-dim">1200 &times; 630</span>
+            </button>
+            <button class="btn export-btn" data-dim="3">
+              <span>Email Cover</span>
+              <span class="export-dim">600 &times; 403</span>
+            </button>
+          </div>
+          <button class="btn btn-primary" id="exportAllBtn">Download All Formats</button>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Unsplash Modal -->
+  <div id="unsplashModal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h2>Unsplash</h2>
+          <p class="modal-subtitle">Search free high-resolution photos</p>
+        </div>
+        <button id="closeModal" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="unsplashKeySection" class="unsplash-key-section">
+          <p>Enter your <a href="https://unsplash.com/developers" target="_blank" rel="noopener">Unsplash API</a> access key to enable search.</p>
+          <div class="btn-row">
+            <input type="text" id="unsplashKey" placeholder="Access Key">
+            <button id="saveKeyBtn" class="btn">Save Key</button>
+          </div>
+        </div>
+        <div class="search-row">
+          <input type="text" id="unsplashSearch" placeholder="Search for photos&hellip;">
+          <button id="searchBtn" class="btn btn-primary">Search</button>
+        </div>
+        <div id="unsplashResults" class="unsplash-results"></div>
+        <div id="unsplashPagination" class="unsplash-pagination hidden">
+          <button id="loadMoreBtn" class="btn btn-outline">Load More</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function(){
+    const HASH='3b93f28c2535f9b7cc73201184ef8c903feb04e2d2c44c2d0cdea3b268d9007b';
+    const gate=document.getElementById('authGate');
+    const app=document.querySelector('.app');
+    if(sessionStorage.getItem('chan_auth')==='1'){
+      gate.style.display='none';app.style.display='';
+    }
+    document.getElementById('authForm').addEventListener('submit',async function(e){
+      e.preventDefault();
+      const pw=document.getElementById('authPassword').value;
+      const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pw));
+      const hex=[...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+      if(hex===HASH){
+        sessionStorage.setItem('chan_auth','1');
+        gate.style.display='none';app.style.display='';
+      }else{
+        document.getElementById('authError').textContent='Incorrect password';
+        document.getElementById('authPassword').value='';
+      }
+    });
+  })();
+  </script>
+  <script src="app.js?v=5"></script>
+</body>
+</html>
