@@ -88,10 +88,6 @@ async function render() {
   // Preview uses devicePixelRatio for crisp display on Retina screens
   const dpr = window.devicePixelRatio || 1;
   await renderToCanvas(canvas, dim, state.selectedDimension, { scale: dpr });
-  // Let CSS handle responsive sizing; just set aspect ratio to prevent distortion
-  canvas.style.width = '100%';
-  canvas.style.height = 'auto';
-  canvas.style.aspectRatio = `${dim.width} / ${dim.height}`;
 }
 
 async function renderToCanvas(canvas, dim, dimIndex, opts = {}) {
