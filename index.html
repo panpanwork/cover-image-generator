@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chan Magazine &mdash; Cover Generator</title>
   <link href="https://fonts.googleapis.com/css2?family=Allerta&family=Baloo+2:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=5">
+  <link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
   <!-- Password Gate -->
@@ -57,27 +57,28 @@
           </div>
         </div>
 
-        <!-- Per-format background placement controls -->
-        <div class="placement-bar">
-          <span class="placement-label">Background Placement</span>
-          <div class="placement-controls">
-            <div class="placement-slider">
-              <span class="placement-slider-label">Scale</span>
-              <input type="range" id="bgScale" min="50" max="300" value="100" step="1">
-              <span class="slider-value" id="bgScaleValue">100%</span>
-            </div>
-            <div class="placement-slider">
-              <span class="placement-slider-label">X</span>
-              <input type="range" id="bgOffsetX" min="-100" max="100" value="0" step="1">
-              <span class="slider-value" id="bgOffsetXValue">0</span>
-            </div>
-            <div class="placement-slider">
-              <span class="placement-slider-label">Y</span>
-              <input type="range" id="bgOffsetY" min="-100" max="100" value="0" step="1">
-              <span class="slider-value" id="bgOffsetYValue">0</span>
-            </div>
-            <button id="resetPlacement" class="btn btn-reset" title="Reset placement">Reset</button>
+      </div>
+
+      <!-- Per-format background placement controls (outside preview-section for mobile sticky) -->
+      <div class="placement-bar">
+        <span class="placement-label">Background Placement</span>
+        <div class="placement-controls">
+          <div class="placement-slider">
+            <span class="placement-slider-label">Scale</span>
+            <input type="range" id="bgScale" min="50" max="300" value="100" step="1">
+            <span class="slider-value" id="bgScaleValue">100%</span>
           </div>
+          <div class="placement-slider">
+            <span class="placement-slider-label">X</span>
+            <input type="range" id="bgOffsetX" min="-100" max="100" value="0" step="1">
+            <span class="slider-value" id="bgOffsetXValue">0</span>
+          </div>
+          <div class="placement-slider">
+            <span class="placement-slider-label">Y</span>
+            <input type="range" id="bgOffsetY" min="-100" max="100" value="0" step="1">
+            <span class="slider-value" id="bgOffsetYValue">0</span>
+          </div>
+          <button id="resetPlacement" class="btn btn-reset" title="Reset placement">Reset</button>
         </div>
       </div>
 
