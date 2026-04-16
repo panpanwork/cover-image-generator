@@ -118,6 +118,11 @@ header h1 {
   gap: 6px;
 }
 
+/* Background actions (Upload/Unsplash) — inside preview-section */
+.bg-actions {
+  margin-top: 12px;
+}
+
 /* Placement Controls */
 .placement-bar {
   grid-column: 1;
@@ -737,6 +742,19 @@ input[type="range"]::-webkit-slider-thumb:hover {
   .preview-frame {
     padding: 8px;
     border-radius: 8px;
+  }
+
+  .bg-actions {
+    margin-top: 8px;
+  }
+
+  .bg-actions .btn-row {
+    gap: 6px;
+  }
+
+  .bg-actions .btn {
+    padding: 7px 12px;
+    font-size: 11px;
   }
 
   #preview {
